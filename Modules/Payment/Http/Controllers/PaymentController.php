@@ -48,16 +48,15 @@ class PaymentController extends Controller
     {
 
 //        $msk = new PaymentGateway();
-//        $msk = new \Modules\Payment\Gateway\Sagepay\Payment();
+        $msk = new \Modules\Payment\Gateway\Sagepay\Payment();
 //        $msk = new \Modules\Payment\Gateway\Sagepay\Repeat();
-        $msk = new \Modules\Payment\Gateway\Sagepay\Refund();
-        $msk = new \Modules\Payment\Gateway\Sagepay\Deferred();
-
-//        dump($msk->paymentOrder(false));
-//        dump($msk->paymentOrder(false));
+//        $msk = new \Modules\Payment\Gateway\Sagepay\Refund();
+//        $msk = new \Modules\Payment\Gateway\Sagepay\Deferred();
+//        dump($msk->paymentOrder(true));
+        dump($msk->paymentOrder(false));
 //        dump($msk->repeatOrder(false));
 //        dump($msk->refundOrder());
-        dump($msk->deferredOrder(false));
+//        dump($msk->deferredOrder(false));
 
     }
 

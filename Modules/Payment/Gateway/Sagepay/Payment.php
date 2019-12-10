@@ -5,9 +5,10 @@ namespace Modules\Payment\Gateway\Sagepay;
 
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
+use Modules\Payment\Exceptions\ObjectVerificationFailedException;
 use Modules\Payment\Http\Requests\ClientRequestHandler;
 
-class Payment extends PaymentGateway
+class Payment extends PaymentGateway implements \Modules\Payment\Contracts\Payment
 {
     protected $merchantSessionKeyObject;
     protected $cardIdentifierObject;
@@ -51,12 +52,7 @@ class Payment extends PaymentGateway
 
         $avsCheck = 'UseMSPSetting';
 
-        $validator = $this->validateInput();
-
-        if ($validator->fails()) {
-            $fields = implode(', ', array_keys($validator->errors()->getMessages()));
-            throw new \Exception("Missing some mandatory fields [$fields]");
-        }
+        $this->validateInput();
 
         return [
             'transactionType' => $this->transactionType,
@@ -89,11 +85,12 @@ class Payment extends PaymentGateway
 
     /**
      * @return \Illuminate\Contracts\Validation\Validator
+     * @throws ObjectVerificationFailedException
      */
     protected function validateInput(): \Illuminate\Contracts\Validation\Validator
     {
 
-        $validator = Validator::make($this->payload, [
+        $rules = [
             'transactionType' => ['max:40'],
             'cardDetails.cardholderName' => ['required', 'max:40'],
             'cardDetails.cardNumber' => ['required', 'max:16'],
@@ -107,12 +104,16 @@ class Payment extends PaymentGateway
             'customerFirstName' => ['required'],
             'customerFirstName' => ['required'],
             'billingAddress.address1' => ['required'],
-            'billingAddress.city' => ['required'],
+            'billingAddress.city1' => ['required'],
             'billingAddress.postalCode' => ['required'],
             'billingAddress.country' => ['required']
-        ]);
+        ];
 
-        return $validator;
+        $validator = Validator::make($this->payload, $rules);
+
+        if ($validator->fails()) {
+            throw new ObjectVerificationFailedException('The gateway response did not contain all the mandatory fields ['. implode(', ', array_keys($validator->errors()->getMessages())) .']');
+        }
 
     }
 

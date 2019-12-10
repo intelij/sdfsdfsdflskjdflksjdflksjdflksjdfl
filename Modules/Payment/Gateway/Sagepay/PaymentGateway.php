@@ -29,6 +29,9 @@ class PaymentGateway implements PaymentGatewayInterface
      */
     protected $payload;
 
+    /**
+     * PaymentGateway constructor.
+     */
     public function __construct()
     {
 
@@ -38,12 +41,13 @@ class PaymentGateway implements PaymentGatewayInterface
 
     }
 
-    public function __toString()
-    {
-        return (string) $this->merchantSessionKeyObject;
-    }
-
-    public function getToken() {
+    /**
+     * Generate Merchant Session Key
+     *
+     * @return ResponseInterface
+     * @throws \Exception
+     */
+    public function getToken() : ResponseInterface {
 
         $requestHandler = new ClientRequestHandler();
         $apiEndpoint = env('SAGEPAY_BASEURL') . 'merchant-session-keys/';
@@ -62,57 +66,9 @@ class PaymentGateway implements PaymentGatewayInterface
 
             $this->merchantSessionKeyObject = json_decode($response->getBody()->__toString());
 
-//            return $response;
+            return $response;
 
         }
-
-    }
-
-    public function getCardAuthIdentifier() {
-
-        $requestHandler = new ClientRequestHandler();
-
-        $apiEndpoint = env('SAGEPAY_BASEURL') . 'card-identifiers';
-
-        if (!array_key_exists('Authorization', $this->requestHeaders)) {
-            throw new \Exception("Missing mandatory field");
-        }
-
-        $data = array_merge($this->payload, [
-            'vendor_name' => $this->payload['vendorName']
-        ]);
-
-        $response = $requestHandler->makeRequest($apiEndpoint, 'post', $data, $this->requestHeaders);
-
-        if ($response instanceof ResponseInterface) {
-
-            $this->merchantSessionKeyObject = json_decode($response->getBody()->__toString());
-
-        }
-
-        return $response;
-
-    }
-
-    public function refreshToken() {
-        /**
-         * if token expired then generate a new one to use for the new transaction.
-         */
-        if ($this->merchantSessionKeyObject && $this->tokenExpired()) {
-
-            $this->getToken();
-
-        }
-    }
-
-    /**
-     * Check to see if we have a valid token or need to generate a new one as it is valid for only 4min
-     *
-     * @return bool
-     */
-    protected function hasTokenExpired() {
-
-        return (date('Y-m-d H:i:s') <= date('Y-m-d H:i:s', strtotime($this->merchantSessionKeyObject->expiry)));
 
     }
 
@@ -150,36 +106,9 @@ class PaymentGateway implements PaymentGatewayInterface
 
             $this->cardIdentifierObject = json_decode($response->getBody()->__toString());
 
-        }
+            return $response;
 
-//        try {
-//
-//            $response = $client->post($apiEndPoint, ['json' => $postData]);
-//
-//            if ($response instanceof ResponseInterface) {
-//
-//                $this->cardIdentifierObject = json_decode($response->getBody()->__toString());
-//
-//            }
-//
-//        } catch (ClientException $clientException) {
-//
-//            $description = $this->setDescriptionHandler($clientException);
-//
-//            return response()->json(['error' => $description], $clientException->getCode());
-//
-//        } catch (ServerException $serverException) {
-//
-//            $description = $this->setDescriptionHandler($serverException);
-//
-//            return response()->json(['error' => $description], $serverException->getCode());
-//
-//        } catch (\Exception $exception) {
-//
-//            $description = $this->setDescriptionHandler($exception);
-//
-//            return response()->json(['error' => $description], $exception->getCode());
-//        }
+        }
 
     }
 
@@ -187,7 +116,7 @@ class PaymentGateway implements PaymentGatewayInterface
      * @param \Exception $exception
      * @return string|null
      */
-    private function setDescriptionHandler(\Exception $exception)
+    private function setDescriptionHandler(\Exception $exception) : string
     {
 
         $description = $exception->getMessage();
@@ -235,7 +164,6 @@ class PaymentGateway implements PaymentGatewayInterface
      */
     public function validateResponse()
     {
-        // TODO: Implement validateResponse() method.
         $this->getToken();
         $this->createCardIdentifier();
     }

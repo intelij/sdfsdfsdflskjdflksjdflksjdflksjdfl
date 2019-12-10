@@ -5,6 +5,7 @@ namespace Modules\Payment\Contracts;
 
 
 use Dividebuy\Payment\Address;
+use Psr\Http\Message\ResponseInterface;
 
 interface Payment
 {
@@ -38,5 +39,10 @@ interface Payment
      * @return mixed
      */
     public function payOrder($threeDSecure = false);
+
+    /**
+     * @return ResponseInterface
+     */
+    public function getToken() : ResponseInterface;
 
 }

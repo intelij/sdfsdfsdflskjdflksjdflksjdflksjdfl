@@ -25,7 +25,10 @@ use \GuzzleHttp\Psr7\Response;
         Route::post('/auth-token', 'PaymentController@index');
         Route::post('/card-identifier', 'PaymentController@ci');
 
+        Route::get('/fulfill-secure-payment', function (Request $request) {
 
+            dump('we are coming from a secure payment', $request->server->all());
+        });
 
         Route::get('/', function () {
             dump('we hit this');
@@ -59,57 +62,57 @@ Route::get('test-header', function (Request $request) {
 
 });
 
-function randomArray() {
-
-    $quote = array(
-        "I wish I had",
-        "Why Can't I have",
-        "Can I have",
-        "Did you have",
-        "Will you get",
-        "When will I get"
-    );
-
-    $items = array(
-        "Money",
-        "Time",
-        "Sex",
-        "Coffee",
-        "A Better Job",
-        "A Life",
-        "Better Programming Skills",
-        "Internet that was mine",
-        "More Beer",
-        "More Donuts",
-        "Candy",
-        "My Daughter",
-        "Cable",
-        "A Dining Room Table",
-        "Better Couches",
-        "A PS4",
-        "A New Laptop",
-        "A New Phone",
-        "Water",
-        "Rum",
-        "Movies",
-        "A Desktop Computer",
-        "A Fish Tank",
-        "My Socks",
-        "My Jacket",
-        "More Coffee",
-        "More Koolaid",
-        "More Power",
-        "A Truck",
-        "Toolbox",
-        "More fish for Fish Tank",
-        "A Screwdriver",
-        "A Projector",
-        "More Pants"
-    );
-
-    return $rand_keys = $quote[array_rand($quote,1)] . ' ' .  $rand_keys = $items[array_rand($items,1)] . ' ' .  $rand_keys = $items[array_rand($items,1)] . ' ' .  $rand_keys = $items[array_rand($items,1)];
-
-}
+//function randomArray() {
+//
+//    $quote = array(
+//        "I wish I had",
+//        "Why Can't I have",
+//        "Can I have",
+//        "Did you have",
+//        "Will you get",
+//        "When will I get"
+//    );
+//
+//    $items = array(
+//        "Money",
+//        "Time",
+//        "Sex",
+//        "Coffee",
+//        "A Better Job",
+//        "A Life",
+//        "Better Programming Skills",
+//        "Internet that was mine",
+//        "More Beer",
+//        "More Donuts",
+//        "Candy",
+//        "My Daughter",
+//        "Cable",
+//        "A Dining Room Table",
+//        "Better Couches",
+//        "A PS4",
+//        "A New Laptop",
+//        "A New Phone",
+//        "Water",
+//        "Rum",
+//        "Movies",
+//        "A Desktop Computer",
+//        "A Fish Tank",
+//        "My Socks",
+//        "My Jacket",
+//        "More Coffee",
+//        "More Koolaid",
+//        "More Power",
+//        "A Truck",
+//        "Toolbox",
+//        "More fish for Fish Tank",
+//        "A Screwdriver",
+//        "A Projector",
+//        "More Pants"
+//    );
+//
+//    return $rand_keys = $quote[array_rand($quote,1)] . ' ' .  $rand_keys = $items[array_rand($items,1)] . ' ' .  $rand_keys = $items[array_rand($items,1)] . ' ' .  $rand_keys = $items[array_rand($items,1)];
+//
+//}
 
 //// App v1 API
 //Route::group([

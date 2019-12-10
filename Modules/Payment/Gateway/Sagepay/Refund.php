@@ -5,6 +5,7 @@ namespace Modules\Payment\Gateway\Sagepay;
 
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
+use Modules\Payment\Exceptions\ObjectVerificationFailedException;
 use Modules\Payment\Http\Requests\ClientRequestHandler;
 
 class Refund extends PaymentGateway
@@ -35,12 +36,7 @@ class Refund extends PaymentGateway
 
     protected function formatData() {
 
-        $validator = $this->validateInput();
-
-        if ($validator->fails()) {
-            $fields = implode(', ', array_keys($validator->errors()->getMessages()));
-            throw new \Exception("Missing some mandatory fields [$fields]");
-        }
+        $this->validateInput();
 
         return [
             'transactionType' => $this->transactionType,
@@ -58,14 +54,20 @@ class Refund extends PaymentGateway
     protected function validateInput(): \Illuminate\Contracts\Validation\Validator
     {
 
-        return Validator::make($this->payload, [
+        $rules = [
             'transactionType' => ['required'],
             'referenceTransactionId' => ['required'],
             'vendorTxCode' => ['required'],
             'amount' => ['required'],
             'description' => ['required'],
 
-        ]);
+        ];
+
+        $validator = Validator::make($this->payload, $rules);
+
+        if ($validator->fails()) {
+            throw new ObjectVerificationFailedException('The gateway response did not contain all the mandatory fields ['. implode(', ', array_keys($validator->errors()->getMessages())) .']');
+        }
 
     }
 

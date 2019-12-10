@@ -5,6 +5,7 @@ namespace Modules\Payment\Gateway\Sagepay;
 
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
+use Modules\Payment\Exceptions\ObjectVerificationFailedException;
 use Modules\Payment\Http\Requests\ClientRequestHandler;
 
 class Deferred extends PaymentGateway
@@ -51,12 +52,7 @@ class Deferred extends PaymentGateway
 
         $avsCheck = 'UseMSPSetting';
 
-        $validator = $this->validateInput();
-
-        if ($validator->fails()) {
-            $fields = implode(', ', array_keys($validator->errors()->getMessages()));
-            throw new \Exception("Missing some mandatory fields [$fields]");
-        }
+        $this->validateInput();
 
         return [
             'transactionType' => $this->transactionType,
@@ -89,11 +85,12 @@ class Deferred extends PaymentGateway
 
     /**
      * @return \Illuminate\Contracts\Validation\Validator
+     * @throws ObjectVerificationFailedException
      */
     protected function validateInput(): \Illuminate\Contracts\Validation\Validator
     {
 
-        return Validator::make($this->payload, [
+        $rules = [
             'transactionType' => ['max:40'],
             'cardDetails.cardholderName' => ['required', 'max:40'],
             'cardDetails.cardNumber' => ['required', 'max:16'],
@@ -110,7 +107,13 @@ class Deferred extends PaymentGateway
             'billingAddress.city' => ['required'],
             'billingAddress.postalCode' => ['required'],
             'billingAddress.country' => ['required']
-        ]);
+        ];
+
+        $validator = Validator::make($this->payload, $rules);
+
+        if ($validator->fails()) {
+            throw new ObjectVerificationFailedException('The gateway response did not contain all the mandatory fields ['. implode(', ', array_keys($validator->errors()->getMessages())) .']');
+        }
 
     }
 
