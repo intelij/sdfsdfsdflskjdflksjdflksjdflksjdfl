@@ -79,6 +79,7 @@ class ClientRequestHandler
     {
         try {
 
+
             $response = $client->post($apiEndPoint, ['json' => $postData]);
 
             return $response;

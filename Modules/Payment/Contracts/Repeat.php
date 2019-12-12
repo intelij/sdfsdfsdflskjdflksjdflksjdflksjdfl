@@ -41,4 +41,7 @@ interface Repeat
      */
     public function repeatOrder($threeDSecure = false);
 
+    public function preparePayload();
+
+    public function validateInput();
 }

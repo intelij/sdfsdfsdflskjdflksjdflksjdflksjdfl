@@ -10,11 +10,11 @@ interface VoidTransaction
 {
 
     /**
-     * @param $instructionType
-     * @param bool $abort
+     * Instruction to cancel the order
+     *
      * @return mixed
      */
-    public function void($instructionType, $abort = false);
+    public function voidOrder();
 
     /**
      * Check if the transaction in question is a valid transaction or not before voiding it

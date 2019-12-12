@@ -8,13 +8,12 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
 use Modules\Payment\Exceptions\ObjectVerificationFailedException;
 use Modules\Payment\Http\Requests\ClientRequestHandler;
-use \Modules\Payment\Contracts\Refund as PaymentContractInterface;
+use \Modules\Payment\Contracts\VoidTransaction as PaymentContractInterface;
 
-class Refund extends PaymentGateway implements PaymentContractInterface
+class VoidPayment extends PaymentGateway implements PaymentContractInterface
 {
     protected $merchantSessionKeyObject;
     protected $cardIdentifierObject;
-    protected $threeDSecure;
     protected $transactionType;
 
     public function __construct()
@@ -22,23 +21,19 @@ class Refund extends PaymentGateway implements PaymentContractInterface
 
         $this->payload = \request()->all();
         $this->requestHeaders = $this->request_headers();
-//        $this->requestHeaders = apache_request_headers();
         $this->clientRequest = new ClientRequestHandler();
 
     }
 
     /**
-     * @param bool $threeDSecure
      * @return mixed
      * @throws \Exception
      */
-    public function refundOrder($threeDSecure = false) {
+    public function voidOrder() {
 
-        $this->threeDSecure = 'Disable';
+        $this->transactionType = "void";
 
-        $this->transactionType = "Refund";
-
-        return $this->processOrder();
+        return $this->processVoidOrder();
 
     }
 
@@ -51,11 +46,7 @@ class Refund extends PaymentGateway implements PaymentContractInterface
         $this->validateInput();
 
         return [
-            'transactionType' => $this->transactionType,
-            'referenceTransactionId' => $this->payload['referenceTransactionId'],
-            'vendorTxCode' => $this->payload['vendorTxCode'] . time(),
-            'amount' => $this->payload['amount'],
-            'description' => $this->payload['description']
+            'instructionType' => $this->transactionType
         ];
 
     }
@@ -68,11 +59,7 @@ class Refund extends PaymentGateway implements PaymentContractInterface
     {
 
         $rules = [
-            'transactionType' => ['required'],
-            'referenceTransactionId' => ['required'],
-            'vendorTxCode' => ['required'],
-            'amount' => ['required'],
-            'description' => ['required']
+            'transactionId' => ['required'],
         ];
 
         $validator = Validator::make($this->payload, $rules);

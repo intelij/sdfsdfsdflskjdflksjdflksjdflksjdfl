@@ -4,35 +4,43 @@
 namespace Modules\Payment\Contracts;
 
 
+use Psr\Http\Message\ResponseInterface;
+
 interface Deferred
 {
 
     /**
-     * @param $order
+     * @param bool $threeDSecure
+     * @return mixed
+     * @throws \Exception
+     */
+    public function processOrder($threeDSecure = false);
+
+    /**
+     * @return \Illuminate\Http\JsonResponse|ResponseInterface
+     */
+    public function createCardIdentifier() : ResponseInterface;
+
+    /**
+     * Generate Merchant Session Key
      *
-     * @return Payment
+     * @return ResponseInterface
+     * @throws \Exception
      */
-    public function setOrder(PayableOrder $order): Payment;
+    public function getToken() : ResponseInterface;
 
     /**
-     * @return mixed
-     */
-    public function getAcsUrl() : string;
-
-    /**
-     * @return mixed
+     * Gracefully handles request errors
+     *
+     * @return array|false false on failure json object on success
      */
     public function validateResponse();
 
     /**
+     * @param bool $threeDSecure
      * @return mixed
+     * @throws \Exception
      */
-    public function getPaymentResult();
-
-    /**
-     * @param $threeDSecure
-     * @return mixed
-     */
-    public function deferOrder($threeDSecure = false);
+    public function deferredOrder($threeDSecure = false);
 
 }

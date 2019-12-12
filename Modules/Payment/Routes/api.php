@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 use \GuzzleHttp\Psr7\Response;
 /*
 |--------------------------------------------------------------------------
@@ -21,17 +22,56 @@ use \GuzzleHttp\Psr7\Response;
 
 //Route::prefix('v1')->group(function() {
     Route::prefix('payment')->group(function() {
-        Route::post('/', 'PaymentController@index');
+        Route::post('/pay', 'PaymentController@payment');
+        Route::post('/repeat', 'PaymentController@payment');
+        Route::post('/refund', 'PaymentController@payment');
         Route::post('/auth-token', 'PaymentController@index');
-        Route::post('/card-identifier', 'PaymentController@ci');
+
+        Route::post('/card-identifier', 'PaymentController@cardAuthorization');
+        Route::post('/session-token', 'PaymentController@sessionToken');
+
+
+        Route::post('/card-identifier_', function () {
+
+            $card = new Modules\Payment\Gateway\Sagepay\Payment();
+
+            $token = $card->getToken();
+
+            dump($token->getBody()->__toString());
+
+        });
 
         Route::get('/fulfill-secure-payment', function (Request $request) {
 
             dump('we are coming from a secure payment', $request->server->all());
         });
 
-        Route::get('/', function () {
-            dump('we hit this');
+
+
+        Route::get('test', function () {
+
+            $client = new GuzzleHttp\Client(
+                [
+                    \GuzzleHttp\RequestOptions::HEADERS => [
+                        'Content-Type' => 'application/json',
+                        'Authorization' => 'Basic dzlSN2ZSOWYxenhnYXNTNWVjNDZia05vaTFsekFDNGlrV1pxa2gxZnFFa1Z6RkxsS0M6enVBRnVpckM1UEc0bEoyMlQzcmxCdDRXY1NmcTRpOWdyblJOcWpHWktYVGhDOFMwVmkwakt3V21tMHc2RGhZd2Q='
+                    ],
+                    \GuzzleHttp\RequestOptions::JSON => ['vendorName' => 'rematchtest']
+                ]);
+
+            $apiEndPoint = 'https://pi-test.sagepay.com/api/v1/merchant-session-keys';
+            $response = $client->post($apiEndPoint, []);
+
+            dump($response->getBody()->__toString());
+
+            dd();
+
+            $this->auth = json_decode($response->getBody()->getContents());
+            $config = $this->client->getConfig();
+            $config['headers']['Authorization'] = 'Basic dzlSN2ZSOWYxenhnYXNTNWVjNDZia05vaTFsekFDNGlrV1pxa2gxZnFFa1Z6RkxsS0M6enVBRnVpckM1UEc0bEoyMlQzcmxCdDRXY1NmcTRpOWdyblJOcWpHWktYVGhDOFMwVmkwakt3V21tMHc2RGhZd2Q=';
+
+            $this->client = new \GuzzleHttp\Client($config);
+
         });
 
     });

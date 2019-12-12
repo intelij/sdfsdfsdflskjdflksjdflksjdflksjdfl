@@ -18,6 +18,17 @@
         <testsuite name="Feature">
             <directory suffix="Test.php">./tests/Feature</directory>
         </testsuite>
+
+        <testsuite name="Modules">
+            <directory suffix="Test.php">./Modules/**/Tests</directory>
+        </testsuite>
+        <testsuite name="Modules-Feature">
+            <directory suffix="Test.php">./Modules/**/Tests/Feature</directory>
+        </testsuite>
+        <testsuite name="Modules-Unit">
+            <directory suffix="Test.php">./Modules/**/Tests/Unit</directory>
+        </testsuite>
+
     </testsuites>
     <logging>
         <log type="coverage-html" target="./reports/phpunit-coverage-report" lowUpperBound="50" highLowerBound="80" />
@@ -25,6 +36,14 @@
     <filter>
         <whitelist processUncoveredFilesFromWhitelist="true">
             <directory suffix=".php">./app</directory>
+            <directory suffix=".php">./Modules</directory>
+            <exclude>
+                <directory suffix=".blade.php">./Modules</directory>
+                <directory suffix=".php">./Modules/**/Routes</directory>
+                <directory suffix=".php">./Modules/**/Resources</directory>
+                <directory suffix=".php">./Modules/**/Tests</directory>
+                <directory suffix=".php">./Modules/**/Config</directory>
+            </exclude>
         </whitelist>
     </filter>
     <php>
@@ -35,5 +54,19 @@
         <server name="QUEUE_CONNECTION" value="sync"/>
         <server name="SESSION_DRIVER" value="array"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
+        <env name="APP_KEY" value="base64:C70dyyvA8MBiI18KuHuru883lf73p54LSOIbwbu71+g="/>
+        <env name="BCRYPT_ROUNDS" value="4"/>
+        <env name="APP_URL" value="http://localhost"/>
+        <env name="CACHE_DRIVER" value="array"/>
+        <env name="SESSION_DRIVER" value="array"/>
+        <env name="QUEUE_CONNECTION" value="sync"/>
+        <env name="MAIL_DRIVER" value="array"/>
+        <env name="DB_CONNECTION" value="sqlite" force="true"/>
+        <env name="DB_DATABASE" value="database/database.sqlite" force="true"/>
+        <env name="DB_DRIVER" value="sqlite" force="true"/>
+        <env name="SAGEPAY_CURRENCY" value="GBP"/>
+        <env name="SAGEPAY_KEY" value="dzlSN2ZSOWYxenhnYXNTNWVjNDZia05vaTFsekFDNGlrV1pxa2gxZnFFa1Z6RkxsS0M6enVBRnVpckM1UEc0bEoyMlQzcmxCdDRXY1NmcTRpOWdyblJOcWpHWktYVGhDOFMwVmkwakt3V21tMHc2RGhZd2Q="/>
+        <env name="SAGEPAY_VENDOR" value="rematchtest"/>
+        <env name="SAGEPAY_URL" value="https://pi-test.sagepay.com/api/v1/"/>
     </php>
 </phpunit>

@@ -5,6 +5,8 @@ namespace Modules\Payment\Contracts;
 
 
 use App\Contracts\ValidateTransactionExists;
+use Modules\Payment\Exceptions\ObjectVerificationFailedException;
+use Psr\Http\Message\ResponseInterface;
 
 interface Refund
 {
@@ -19,10 +21,26 @@ interface Refund
     public function validateTransaction() : ValidateTransactionExists;
 
     /**
-     * @param $transactionId
-     * @param $amount
+     * @param bool $threeDSecure
      * @return mixed
+     * @throws \Exception
      */
-    public function refund($transactionId, $amount);
+    public function refundOrder($threeDSecure = false);
+
+    /**
+     * Generate Merchant Session Key
+     *
+     * @return ResponseInterface
+     * @throws \Exception
+     */
+    public function getToken() : ResponseInterface;
+
+    /**
+     * Gracefully handles request errors
+     *
+     * @return array|false false on failure json object on success
+     */
+    public function validateResponse();
+
 
 }

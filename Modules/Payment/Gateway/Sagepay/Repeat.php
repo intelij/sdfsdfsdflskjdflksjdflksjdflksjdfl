@@ -3,7 +3,6 @@
 
 namespace Modules\Payment\Gateway\Sagepay;
 
-use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
 use Modules\Payment\Exceptions\ObjectVerificationFailedException;
 use Modules\Payment\Http\Requests\ClientRequestHandler;
@@ -19,7 +18,8 @@ class Repeat extends PaymentGateway
     {
 
         $this->payload = \request()->all();
-        $this->requestHeaders = apache_request_headers();
+        $this->requestHeaders = $this->request_headers();
+//        $this->requestHeaders = apache_request_headers();
         $this->clientRequest = new ClientRequestHandler();
 
     }
@@ -28,11 +28,17 @@ class Repeat extends PaymentGateway
 
         $this->threeDSecure = 'Disable';
         $this->transactionType = "Repeat";
-        return $this->payOrder();
+        return $this->processOrder();
 
     }
 
-    protected function formatData() {
+    /**
+     * Prepare the payload expected by the Payment API
+     *
+     * @return array
+     * @throws ObjectVerificationFailedException
+     */
+    protected function preparePayload() {
 
         $this->validateInput();
 
@@ -57,10 +63,10 @@ class Repeat extends PaymentGateway
     }
 
     /**
-     * @return \Illuminate\Contracts\Validation\Validator
+     * @return void
      * @throws ObjectVerificationFailedException
      */
-    protected function validateInput(): \Illuminate\Contracts\Validation\Validator
+    protected function validateInput()
     {
 
         $rules = [
@@ -75,8 +81,7 @@ class Repeat extends PaymentGateway
             'shippingDetails.shippingAddress2' => ['required'],
             'shippingDetails.shippingCity' => ['required'],
             'shippingDetails.shippingPostalCode' => ['required'],
-            'shippingDetails.shippingCountry' => ['required'],
-
+            'shippingDetails.shippingCountry' => ['required']
         ];
 
         $validator = Validator::make($this->payload, $rules);

@@ -33,5 +33,4 @@ interface Card
      */
     public function getCardSecurityCode() : int;
 
-
 }

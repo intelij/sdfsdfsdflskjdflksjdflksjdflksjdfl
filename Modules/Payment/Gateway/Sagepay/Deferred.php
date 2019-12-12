@@ -3,23 +3,26 @@
 
 namespace Modules\Payment\Gateway\Sagepay;
 
+use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
+use Modules\Payment\Contracts\Deferred as PaymentContractInterface;
 use Modules\Payment\Exceptions\ObjectVerificationFailedException;
 use Modules\Payment\Http\Requests\ClientRequestHandler;
 
-class Deferred extends PaymentGateway
+class Deferred extends PaymentGateway implements PaymentContractInterface
 {
     protected $merchantSessionKeyObject;
     protected $cardIdentifierObject;
     protected $threeDSecure;
     protected $transactionType;
 
-    public function __construct()
+    public function __construct(Request $request)
     {
 
         $this->payload = \request()->all();
-        $this->requestHeaders = apache_request_headers();
+        $this->requestHeaders = $this->request_headers();
+        $this->request = $request;
         $this->clientRequest = new ClientRequestHandler();
         $this->validateResponse();
 
@@ -40,7 +43,7 @@ class Deferred extends PaymentGateway
 
         $this->transactionType = "Deferred";
 
-        return $this->payOrder();
+        return $this->processOrder();
 
     }
 
@@ -48,7 +51,7 @@ class Deferred extends PaymentGateway
      * @return array
      * @throws \Exception
      */
-    protected function formatData() {
+    protected function preparePayload() {
 
         $avsCheck = 'UseMSPSetting';
 
@@ -84,10 +87,10 @@ class Deferred extends PaymentGateway
     }
 
     /**
-     * @return \Illuminate\Contracts\Validation\Validator
+     * @return void
      * @throws ObjectVerificationFailedException
      */
-    protected function validateInput(): \Illuminate\Contracts\Validation\Validator
+    protected function validateInput()
     {
 
         $rules = [

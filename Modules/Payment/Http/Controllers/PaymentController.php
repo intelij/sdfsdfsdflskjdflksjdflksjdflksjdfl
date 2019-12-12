@@ -2,12 +2,14 @@
 
 namespace Modules\Payment\Http\Controllers;
 
-use Dividebuy\Payment\Contracts\Payment;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Modules\Payment\Gateway\Sagepay\PaymentGateway;
-//use Modules\Payment\Gateway\Sagepay\Payment;
+use Modules\Payment\Gateway\Sagepay\Payment;
+use \GuzzleHttp\Psr7\Response;
+use Psr\Http\Message\ResponseInterface;
+
 
 class PaymentController extends Controller
 {
@@ -16,64 +18,97 @@ class PaymentController extends Controller
     protected $merchantSessionKey;
     protected $cardIdentifier;
 
-
-    public function __construct()
-    {
-
-        $this->payload = json_encode([
-            'key' => 'value',
-            'merchant' => 'dividebuy-test-account-api',
-            'created_at' => date('d-m-Y')
-        ]);
-
-        $this->merchantSessionKey = json_encode([
-            "expiry" => "2019-12-06T10:43:53.810Z",
-            "merchantSessionKey" => "4F84B1EB-C03A-4EA9-94DC-0BF8796C1AB4"
-        ]);
-
-        $this->cardIdentifier = json_encode([
-            "cardIdentifier" => "336AEE65-AC64-4C10-AC2F-9ED767C3117F",
-            "expiry" => "2019-12-06T11:04:04.501Z",
-            "cardType" => "Visa"
-        ]);
-
-    }
-
     /**
      * Display a listing of the resource.
      * @return Response
      * @throws \Exception
      */
-    public function index()
+    public function index(Request $request)
     {
 
 //        $msk = new PaymentGateway();
-        $msk = new \Modules\Payment\Gateway\Sagepay\Payment();
-//        $msk = new \Modules\Payment\Gateway\Sagepay\Repeat();
-//        $msk = new \Modules\Payment\Gateway\Sagepay\Refund();
-//        $msk = new \Modules\Payment\Gateway\Sagepay\Deferred();
+        $msk = new \Modules\Payment\Gateway\Sagepay\Payment($request);
+//        $msk = new \Modules\Payment\Gateway\Sagepay\Repeat($request);
+//        $msk = new \Modules\Payment\Gateway\Sagepay\Refund($request);
+//        $msk = new \Modules\Payment\Gateway\Sagepay\Deferred($request);
+//        $msk = new \Modules\Payment\Gateway\Sagepay\VoidPayment($request);
+
+
 //        dump($msk->paymentOrder(true));
         dump($msk->paymentOrder(false));
 //        dump($msk->repeatOrder(false));
 //        dump($msk->refundOrder());
 //        dump($msk->deferredOrder(false));
+//        dump($msk->voidOrder());
 
     }
 
     /**
      * Display a listing of the resource.
-     * @return Response
+     * @param Request $request
+     * @return JsonResponse
+     * @throws \Exception
      */
-    public function ci()
+    public function payment(Request $request)
     {
 
-        $msk = new Payment();
+        $payment = new Payment($request);
 
-        $msk->createCardIdentifier();
-//        $msk->getCardAuthIdentifier();
+        $payment = $payment->paymentOrder(false);
 
-        dump($msk);
+        if ($payment instanceof ResponseInterface) {
 
+            return json_decode($payment->getBody()->__toString());
+
+        }
+
+        return new JsonResponse($payment, 200);
+
+    }
+
+    /**
+     * Display a listing of the resource.
+     * @param Request $request
+     * @return JsonResponse
+     * @throws \Exception
+     */
+    public function sessionToken(Request $request)
+    {
+
+        $card = new PaymentGateway($request);
+
+        $token = $card->getToken();
+
+        if ( $token instanceof ResponseInterface) {
+            return new JsonResponse(json_decode($token->getBody()->__toString()), 200);
+        }
+
+        return new JsonResponse(
+            'Error creating a Card Token',
+            201
+        );
+    }
+
+    /**
+     * Display a listing of the resource.
+     * @return JsonResponse
+     * @throws \Exception
+     */
+    public function cardAuthorization(Request $request)
+    {
+
+        $card = new PaymentGateway($request);
+
+        $token = $card->createCardIdentifier();
+
+        if ( $token instanceof ResponseInterface) {
+            return new JsonResponse(json_decode($token->getBody()->__toString()), 200);
+        }
+
+        return new JsonResponse(
+            'Error creating a Card Token',
+            201
+        );
     }
 
     /**

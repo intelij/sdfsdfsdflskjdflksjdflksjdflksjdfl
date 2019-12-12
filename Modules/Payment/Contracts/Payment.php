@@ -11,38 +11,37 @@ interface Payment
 {
 
     /**
-     * @param $order
-     *
-     * @return Payment
+     * @param bool $threeDSecure
+     * @return mixed
+     * @throws \Exception
      */
-    public function setOrder(PayableOrder $order);
+    public function processOrder($threeDSecure = false);
 
     /**
-     * @return mixed
+     * @return \Illuminate\Http\JsonResponse|ResponseInterface
      */
-    public function getAcsUrl() : string;
+    public function createCardIdentifier() : ResponseInterface;
+
+    /**
+     * Generate Merchant Session Key
+     *
+     * @return ResponseInterface
+     * @throws \Exception
+     */
+    public function getToken() : ResponseInterface;
+
+    /**
+     * @param bool $threeDSecure
+     * @return mixed
+     * @throws \Exception
+     */
+    public function paymentOrder($threeDSecure = false);
 
     /**
      * Gracefully handles request errors
      *
      * @return array|false false on failure json object on success
      */
-    public function validateResponse();
-
-    /**
-     * @return mixed
-     */
-    public function getPaymentResult();
-
-    /**
-     * @param bool $threeDSecure
-     * @return mixed
-     */
-    public function payOrder($threeDSecure = false);
-
-    /**
-     * @return ResponseInterface
-     */
-    public function getToken() : ResponseInterface;
+     public function validateResponse();
 
 }

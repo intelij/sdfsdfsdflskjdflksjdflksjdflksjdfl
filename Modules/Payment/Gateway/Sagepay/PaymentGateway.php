@@ -5,17 +5,13 @@ namespace Modules\Payment\Gateway\Sagepay;
 
 
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\ClientException;
-use GuzzleHttp\Exception\ServerException;
 use GuzzleHttp\RequestOptions;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
+use Illuminate\Http\Request;
 use Modules\Payment\Contracts\PayableOrder;
-use Modules\Payment\Contracts\Payment as PaymentGatewayInterface;
 use Modules\Payment\Http\Requests\ClientRequestHandler;
 use Psr\Http\Message\ResponseInterface;
 
-class PaymentGateway implements PaymentGatewayInterface
+class PaymentGateway
 {
     protected $merchantSessionKeyObject;
     protected $cardIdentifierObject;
@@ -28,15 +24,18 @@ class PaymentGateway implements PaymentGatewayInterface
      * @var PayableOrder $payload
      */
     protected $payload;
+    protected $request;
 
     /**
      * PaymentGateway constructor.
+     * @param Request $request
      */
-    public function __construct()
+    public function __construct(Request $request)
     {
 
-        $this->payload = \request()->all();
-        $this->requestHeaders = apache_request_headers();
+        $this->payload = $request;
+//        $this->payload = \request()->all();
+        $this->request = $request;
         $this->clientRequest = new ClientRequestHandler();
 
     }
@@ -52,15 +51,11 @@ class PaymentGateway implements PaymentGatewayInterface
         $requestHandler = new ClientRequestHandler();
         $apiEndpoint = env('SAGEPAY_BASEURL') . 'merchant-session-keys/';
 
-        if (!array_key_exists('Authorization', $this->requestHeaders)) {
-            throw new \Exception("Missing mandatory field");
-        }
-
         $data = [
-            'vendor_name' => $this->payload['vendorName']
+            'vendor_name' => $this->request->headers->get('authorization')
         ];
 
-        $response = $requestHandler->makeRequest($apiEndpoint, 'post', $data, $this->requestHeaders);
+        $response = $requestHandler->makeRequest($apiEndpoint, 'post', $data, $this->request->headers->all());
 
         if ($response instanceof ResponseInterface) {
 
@@ -72,7 +67,12 @@ class PaymentGateway implements PaymentGatewayInterface
 
     }
 
-    public function createCardIdentifier() {
+    /**
+     * @return \Illuminate\Http\JsonResponse|ResponseInterface
+     */
+    public function createCardIdentifier() : ResponseInterface {
+
+        dd($this->payload);
 
         $cardDetails = [
             "cardDetails" => [
@@ -92,19 +92,24 @@ class PaymentGateway implements PaymentGatewayInterface
 
         $postData = array_merge($postData, $cardDetails);
 
+        $merchantSessionKey = json_decode($this->getToken()->getBody()->__toString())->merchantSessionKey; //$this->merchantSessionKeyObject->merchantSessionKey;
+
         $client = new Client(
             [
                 RequestOptions::HEADERS => [
-                    'Authorization' => 'Bearer ' . $this->merchantSessionKeyObject->merchantSessionKey
+                    'Authorization' => 'Bearer ' . $merchantSessionKey
                 ]
             ]
         );
+
 
         $response = $this->clientRequest->processRequest($apiEndPoint, $client, $postData);
 
         if ($response instanceof ResponseInterface) {
 
             $this->cardIdentifierObject = json_decode($response->getBody()->__toString());
+
+            dd($response);
 
             return $response;
 
@@ -140,23 +145,6 @@ class PaymentGateway implements PaymentGatewayInterface
     }
 
     /**
-     * @param $order
-     *
-     */
-    public function setOrder($order)
-    {
-        // TODO: Implement setOrder() method.
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getAcsUrl(): string
-    {
-        // TODO: Implement getAcsUrl() method.
-    }
-
-    /**
      * Gracefully handles request errors
      *
      * @return void false on failure json object on success
@@ -169,22 +157,14 @@ class PaymentGateway implements PaymentGatewayInterface
     }
 
     /**
-     * @return mixed
-     */
-    public function getPaymentResult()
-    {
-        // TODO: Implement getPaymentResult() method.
-    }
-
-    /**
      * @param bool $threeDSecure
      * @return mixed
      * @throws \Exception
      */
-    public function payOrder($threeDSecure = false)
+    public function processOrder($threeDSecure = false)
     {
 
-        $postData = $this->formatData();
+        $postData = $this->preparePayload();
 
         $apiEndpoint = env('SAGEPAY_BASEURL') . 'transactions';
 
@@ -198,6 +178,50 @@ class PaymentGateway implements PaymentGatewayInterface
 
         return $response;
 
+    }
+
+    /**
+     * @return mixed
+     * @throws \Exception
+     */
+    public function processVoidOrder()
+    {
+
+        $postData = $this->preparePayload();
+
+        $apiEndpoint = env('SAGEPAY_BASEURL') . 'transactions/' . $this->payload['transactionId'] . '/instructions';
+
+        $response = $this->clientRequest->makeRequest($apiEndpoint, 'post', $postData, $this->requestHeaders);
+
+        if ($response instanceof ResponseInterface) {
+
+            return json_decode($response->getBody()->__toString());
+
+        }
+
+        return $response;
+
+    }
+
+    protected function request_headers()
+    {
+        if(function_exists("apache_request_headers"))
+        {
+            if($headers = apache_request_headers())
+            {
+                return $headers;
+            }
+        }
+        $headers = array();
+        foreach(array_keys($_SERVER) as $skey)
+        {
+            if(substr($skey, 0, 5) == "HTTP_")
+            {
+                $headername = str_replace(" ", "-", ucwords(strtolower(str_replace("_", " ", substr($skey, 0, 5)))));
+                $headers[$headername] = $_SERVER[$skey];
+            }
+        }
+        return $headers;
     }
 
 }
