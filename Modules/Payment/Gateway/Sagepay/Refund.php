@@ -4,6 +4,7 @@
 namespace Modules\Payment\Gateway\Sagepay;
 
 use App\Contracts\ValidateTransactionExists;
+use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
 use Modules\Payment\Exceptions\ObjectVerificationFailedException;
@@ -17,13 +18,12 @@ class Refund extends PaymentGateway implements PaymentContractInterface
     protected $threeDSecure;
     protected $transactionType;
 
-    public function __construct()
+    public function __construct(Request $request)
     {
 
-        $this->payload = \request()->all();
-        $this->requestHeaders = $this->request_headers();
-//        $this->requestHeaders = apache_request_headers();
-        $this->clientRequest = new ClientRequestHandler();
+        parent::__construct($request);
+
+//        $this->validateResponse();
 
     }
 

@@ -64,24 +64,4 @@ class SessionTokenTest extends TestCase
 
     }
 
-    /**
-     * A basic test example.
-     *
-     * @test
-     *
-     * @return void
-     * @throws \Exception
-     */
-    public function testShouldNotBeAbleToGenerateSessionToken()
-    {
-
-        $response = $this->withHeaders($this->requestHeaders)->post('/api/payment/session-token', $this->payload);
-
-        $result = $response->decodeResponseJson();
-
-        $this->assertIsString($result['merchantSessionKey']);
-        $this->assertArrayHasKey('merchantSessionKey', $result);
-
-    }
-
 }

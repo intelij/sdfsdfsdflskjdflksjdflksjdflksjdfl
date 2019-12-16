@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Validator;
 use Modules\Payment\Exceptions\ObjectVerificationFailedException;
 use Modules\Payment\Http\Requests\ClientRequestHandler;
 use \Modules\Payment\Contracts\Payment as PaymentContractInterface;
+use phpDocumentor\Reflection\Types\Parent_;
 
 class Payment extends PaymentGateway implements PaymentContractInterface
 {
@@ -20,11 +21,8 @@ class Payment extends PaymentGateway implements PaymentContractInterface
     public function __construct(Request $request)
     {
 
+        parent::__construct($request);
 
-        $this->payload = \request()->all();
-        $this->requestHeaders = $this->request_headers();
-        $this->request = $request;
-        $this->clientRequest = new ClientRequestHandler();
         $this->validateResponse();
 
     }

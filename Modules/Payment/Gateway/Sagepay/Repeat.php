@@ -3,6 +3,7 @@
 
 namespace Modules\Payment\Gateway\Sagepay;
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Modules\Payment\Exceptions\ObjectVerificationFailedException;
 use Modules\Payment\Http\Requests\ClientRequestHandler;
@@ -14,14 +15,9 @@ class Repeat extends PaymentGateway
     protected $threeDSecure;
     protected $transactionType;
 
-    public function __construct()
+    public function __construct(Request $request)
     {
-
-        $this->payload = \request()->all();
-        $this->requestHeaders = $this->request_headers();
-//        $this->requestHeaders = apache_request_headers();
-        $this->clientRequest = new ClientRequestHandler();
-
+        parent::__construct($request);
     }
 
     public function repeatOrder($threeDSecure = false) {
@@ -53,7 +49,6 @@ class Repeat extends PaymentGateway
                 'recipientFirstName' => $this->payload['shippingDetails']['recipientFirstName'],
                 'recipientLastName' => $this->payload['shippingDetails']['recipientLastName'],
                 'shippingAddress1' => $this->payload['shippingDetails']['shippingAddress1'],
-                'shippingAddress2' => $this->payload['shippingDetails']['shippingAddress2'],
                 'shippingCity' => $this->payload['shippingDetails']['shippingCity'],
                 'shippingPostalCode' => $this->payload['shippingDetails']['shippingPostalCode'],
                 'shippingCountry' => $this->payload['shippingDetails']['shippingCountry'],
@@ -78,7 +73,6 @@ class Repeat extends PaymentGateway
             'shippingDetails.recipientFirstName' => ['required'],
             'shippingDetails.recipientLastName' => ['required'],
             'shippingDetails.shippingAddress1' => ['required'],
-            'shippingDetails.shippingAddress2' => ['required'],
             'shippingDetails.shippingCity' => ['required'],
             'shippingDetails.shippingPostalCode' => ['required'],
             'shippingDetails.shippingCountry' => ['required']

@@ -4,6 +4,7 @@
 namespace Modules\Payment\Gateway\Sagepay;
 
 use App\Contracts\ValidateTransactionExists;
+use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
 use Modules\Payment\Exceptions\ObjectVerificationFailedException;
@@ -16,12 +17,10 @@ class VoidPayment extends PaymentGateway implements PaymentContractInterface
     protected $cardIdentifierObject;
     protected $transactionType;
 
-    public function __construct()
+    public function __construct(Request $request)
     {
 
-        $this->payload = \request()->all();
-        $this->requestHeaders = $this->request_headers();
-        $this->clientRequest = new ClientRequestHandler();
+        parent::__construct($request);
 
     }
 
@@ -59,7 +58,7 @@ class VoidPayment extends PaymentGateway implements PaymentContractInterface
     {
 
         $rules = [
-            'transactionId' => ['required'],
+            'instructionType' => ['required'],
         ];
 
         $validator = Validator::make($this->payload, $rules);

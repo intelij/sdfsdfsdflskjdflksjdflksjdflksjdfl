@@ -20,10 +20,17 @@ class Deferred extends PaymentGateway implements PaymentContractInterface
     public function __construct(Request $request)
     {
 
-        $this->payload = \request()->all();
-        $this->requestHeaders = $this->request_headers();
+        $this->payload = $request->request->all();
         $this->request = $request;
+
+        $headers = [];
+        foreach ($request->header() as $k => $v) {
+            $headers[$k] = $v[0];
+        }
+
+        $this->requestHeaders = $headers;
         $this->clientRequest = new ClientRequestHandler();
+
         $this->validateResponse();
 
     }

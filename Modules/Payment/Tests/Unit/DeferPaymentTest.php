@@ -3,14 +3,23 @@
 namespace Tests\Unit;
 
 use Dividebuy\Payment\Contracts\Card;
+use GuzzleHttp\Client;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\TestResponse;
+use Illuminate\Http\JsonResponse;
+//use Illuminate\Support\Facades\Request;
+use Illuminate\Http\Request;
+use Modules\Payment\Gateway\Sagepay\Deferred;
+use Modules\Payment\Gateway\Sagepay\Payment;
+use Modules\Payment\Gateway\Sagepay\VoidPayment;
+use Psr\Http\Message\ResponseInterface;
 use Tests\TestCase;
 
-class RefundTest extends TestCase
+class DeferPaymentTest extends TestCase
 {
     protected $payload;
-    protected $requestHeaders;
     protected $err_payload;
+    protected $requestHeaders;
 
     protected function setUp(): void
     {
@@ -18,7 +27,7 @@ class RefundTest extends TestCase
 
         $this->payload = json_decode(
             '{
-                    "transactionType": "Payment",
+                    "transactionType": "Defer",
                     "transactionId": "A66F7DC8-705F-0512-C149-62AB40304FD8",
                     "cardDetails":{
                         "cardholderName": "Bruce Lee Fong Kong",
@@ -27,7 +36,7 @@ class RefundTest extends TestCase
                         "securityCode": "123"
                     },
                     "vendorTxCode": "EC1V-12654-",
-                    "amount": 156700,
+                    "amount": 6325,
                     "currency": "GBP",
                     "description": "Demo transaction",
                     "apply3DSecure": "UseMSPSetting",
@@ -64,35 +73,64 @@ class RefundTest extends TestCase
      * @return void
      * @throws \Exception
      */
-    public function testShouldBeAbleToGenerateSessionToken()
+    public function testShouldBeAbleToMakePayment()
     {
 
-        $response = $this->post('/api/payment/session-token', $this->payload, $this->requestHeaders);
+        $response = $this->withHeaders($this->requestHeaders)->postJson('/api/payment/defer', $this->payload);
 
         $result = $response->decodeResponseJson();
 
-        $this->assertIsString($result['merchantSessionKey']);
-        $this->assertArrayHasKey('merchantSessionKey', $result);
+        $this->assertArrayHasKey('statusDetail', $result);
+
+        $this->assertEquals('The Authorisation was Successful.', $result['statusDetail']);
 
     }
 
-    /**
-     * A basic test example.
-     *
-     * @test
-     *
-     * @return void
-     * @throws \Exception
-     */
-    public function testShouldNotBeAbleToGenerateSessionToken()
-    {
+    public function testPaymentValidationMissingFieldError() {
 
-        $response = $this->withHeaders($this->requestHeaders)->post('/api/payment/session-token', $this->payload);
+        unset($this->payload["customerFirstName"]);
+
+        $response = $this->withHeaders($this->requestHeaders)->postJson('/api/payment/defer', $this->payload);
+
+        $response->decodeResponseJson();
+
+        dump($response->json('message'));
+
+        $this->assertInstanceOf(TestResponse::class, $response);
+
+        $this->assertEquals($response->json('message'), 'The gateway response did not contain all the mandatory fields [customerFirstName]');
+
+    }
+
+    public function testShouldErrWhenMakingPaymentWithoutAmount() {
+
+        unset($this->payload["amount"]);
+
+        $response = $this->withHeaders($this->requestHeaders)->postJson('/api/payment/defer', $this->payload);
 
         $result = $response->decodeResponseJson();
 
-        $this->assertIsString($result['merchantSessionKey']);
-        $this->assertArrayHasKey('merchantSessionKey', $result);
+        $this->assertArrayHasKey('message', $result);
+
+        $this->assertEquals('Undefined index: amount', $result['message']);
 
     }
+
+    public function testSecurePaymentResponse() {
+
+        $this->expectExceptionMessage('Undefined index: cardDetails');
+
+        $request = new Request($this->payload);
+        $request->headers->set("Authorization", "Basic dzlSN2ZSOWYxenhnYXNTNWVjNDZia05vaTFsekFDNGlrV1pxa2gxZnFFa1Z6RkxsS0M6enVBRnVpckM1UEc0bEoyMlQzcmxCdDRXY1NmcTRpOWdyblJOcWpHWktYVGhDOFMwVmkwakt3V21tMHc2RGhZd2Q=");
+        $request->headers->set("vendorName", "rematchtest");
+
+        $payment = new Deferred($request);
+
+        $payment->deferredOrder(true);
+
+        dump($payment);
+
+
+    }
+
 }

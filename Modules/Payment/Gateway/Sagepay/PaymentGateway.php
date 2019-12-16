@@ -26,16 +26,35 @@ class PaymentGateway
     protected $payload;
     protected $request;
 
-    /**
-     * PaymentGateway constructor.
-     * @param Request $request
-     */
+//    /**
+//     * PaymentGateway constructor.
+//     * @param Request $request
+//     */
+//    public function __construct(Request $request)
+//    {
+//
+//        $this->payload = $this->request = $request;
+//        $this->clientRequest = new ClientRequestHandler();
+//
+//    }
+
+//    protected $merchantSessionKeyObject;
+//    protected $cardIdentifierObject;
+//    protected $threeDSecure;
+//    protected $transactionType;
+
     public function __construct(Request $request)
     {
 
-        $this->payload = $request;
-//        $this->payload = \request()->all();
+        $this->payload = $request->request->all();
         $this->request = $request;
+
+        $headers = [];
+        foreach ($request->header() as $k => $v) {
+            $headers[$k] = $v[0];
+        }
+
+        $this->requestHeaders = $headers;
         $this->clientRequest = new ClientRequestHandler();
 
     }
@@ -69,10 +88,9 @@ class PaymentGateway
 
     /**
      * @return \Illuminate\Http\JsonResponse|ResponseInterface
+     * @throws \Exception
      */
     public function createCardIdentifier() : ResponseInterface {
-
-        dd($this->payload);
 
         $cardDetails = [
             "cardDetails" => [
@@ -109,40 +127,38 @@ class PaymentGateway
 
             $this->cardIdentifierObject = json_decode($response->getBody()->__toString());
 
-            dd($response);
-
             return $response;
 
         }
 
     }
 
-    /**
-     * @param \Exception $exception
-     * @return string|null
-     */
-    private function setDescriptionHandler(\Exception $exception) : string
-    {
-
-        $description = $exception->getMessage();
-
-        if ($exception->hasResponse()) {
-
-            $response = json_decode($exception->getResponse()->getBody()->getContents(), true);
-
-            $description = array_key_exists('description', $response) ? $response['description'] : null;
-
-            if (array_key_exists('errors', $response)) {
-                $description = $response['errors'][0]['description'];
-                if (array_key_exists('property', $response['errors'][0])) {
-                    $description .= ' {' . $response['errors'][0]['property'] . '}';
-                }
-            }
-
-        }
-
-        return $description;
-    }
+//    /**
+//     * @param \Exception $exception
+//     * @return string|null
+//     */
+//    private function setDescriptionHandler(\Exception $exception) : string
+//    {
+//
+//        $description = $exception->getMessage();
+//
+//        if ($exception->hasResponse()) {
+//
+//            $response = json_decode($exception->getResponse()->getBody()->getContents(), true);
+//
+//            $description = array_key_exists('description', $response) ? $response['description'] : null;
+//
+//            if (array_key_exists('errors', $response)) {
+//                $description = $response['errors'][0]['description'];
+//                if (array_key_exists('property', $response['errors'][0])) {
+//                    $description .= ' {' . $response['errors'][0]['property'] . '}';
+//                }
+//            }
+//
+//        }
+//
+//        return $description;
+//    }
 
     /**
      * Gracefully handles request errors
@@ -203,25 +219,25 @@ class PaymentGateway
 
     }
 
-    protected function request_headers()
-    {
-        if(function_exists("apache_request_headers"))
-        {
-            if($headers = apache_request_headers())
-            {
-                return $headers;
-            }
-        }
-        $headers = array();
-        foreach(array_keys($_SERVER) as $skey)
-        {
-            if(substr($skey, 0, 5) == "HTTP_")
-            {
-                $headername = str_replace(" ", "-", ucwords(strtolower(str_replace("_", " ", substr($skey, 0, 5)))));
-                $headers[$headername] = $_SERVER[$skey];
-            }
-        }
-        return $headers;
-    }
+//    protected function request_headers()
+//    {
+//        if(function_exists("apache_request_headers"))
+//        {
+//            if($headers = apache_request_headers())
+//            {
+//                return $headers;
+//            }
+//        }
+//        $headers = array();
+//        foreach(array_keys($_SERVER) as $skey)
+//        {
+//            if(substr($skey, 0, 5) == "HTTP_")
+//            {
+//                $headername = str_replace(" ", "-", ucwords(strtolower(str_replace("_", " ", substr($skey, 0, 5)))));
+//                $headers[$headername] = $_SERVER[$skey];
+//            }
+//        }
+//        return $headers;
+//    }
 
 }

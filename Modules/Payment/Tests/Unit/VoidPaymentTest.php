@@ -14,10 +14,10 @@ use Modules\Payment\Gateway\Sagepay\VoidPayment;
 use Psr\Http\Message\ResponseInterface;
 use Tests\TestCase;
 
-class PaymentTest extends TestCase
+class VoidPaymentTest extends TestCase
 {
     protected $payload;
-    protected $err_payload;
+    protected $transactionId;
     protected $requestHeaders;
 
     protected function setUp(): void
@@ -29,7 +29,7 @@ class PaymentTest extends TestCase
                     "transactionType": "Payment",
                     "transactionId": "A66F7DC8-705F-0512-C149-62AB40304FD8",
                     "cardDetails":{
-                        "cardholderName": "Bruce Lee Fong Kong",
+                        "cardholderName": "Fong Kong",
                         "cardNumber": "4929000000006",
                         "expiryDate": "0320",
                         "securityCode": "123"
@@ -39,7 +39,7 @@ class PaymentTest extends TestCase
                     "currency": "GBP",
                     "description": "Demo transaction",
                     "apply3DSecure": "UseMSPSetting",
-                    "customerFirstName": "Bruce",
+                    "customerFirstName": "Void",
                     "customerLastName": "Lee",
                     "customerEmail": "sam@johns.co.uk",
                     "billingAddress": {
@@ -72,16 +72,32 @@ class PaymentTest extends TestCase
      * @return void
      * @throws \Exception
      */
-    public function testShouldBeAbleToMakePayment()
+    public function testShouldBeAbleToMakePaymentAndVoidGeneratedTransaction()
     {
 
         $response = $this->withHeaders($this->requestHeaders)->postJson('/api/payment/pay', $this->payload);
 
         $result = $response->decodeResponseJson();
 
+        $transactionId = $result['transactionId'];
+        $amount = $result['amount']['totalAmount'];
+
         $this->assertArrayHasKey('statusDetail', $result);
 
         $this->assertEquals('The Authorisation was Successful.', $result['statusDetail']);
+
+
+        $response = $this->withHeaders($this->requestHeaders)->postJson('/api/payment/void', json_decode(
+            '{
+                    "instructionType": "void",
+                    "transactionId": "'.$transactionId.'"
+                    }',
+            true));
+
+        $result = $response->decodeResponseJson();
+        dump('we are here now!', $result);
+
+        $this->assertArrayHasKey('instructionType', $result);
 
     }
 
@@ -112,23 +128,6 @@ class PaymentTest extends TestCase
         $this->assertArrayHasKey('message', $result);
 
         $this->assertEquals('Undefined index: amount', $result['message']);
-
-    }
-
-    public function testSecurePaymentResponse() {
-
-        $this->expectExceptionMessage('Undefined index: cardDetails');
-
-        $request = new Request($this->payload);
-        $request->headers->set("Authorization", "Basic dzlSN2ZSOWYxenhnYXNTNWVjNDZia05vaTFsekFDNGlrV1pxa2gxZnFFa1Z6RkxsS0M6enVBRnVpckM1UEc0bEoyMlQzcmxCdDRXY1NmcTRpOWdyblJOcWpHWktYVGhDOFMwVmkwakt3V21tMHc2RGhZd2Q=");
-        $request->headers->set("vendorName", "rematchtest");
-
-        $payment = new Payment($request);
-
-        $payment->paymentOrder(true);
-
-        dump($payment);
-
 
     }
 

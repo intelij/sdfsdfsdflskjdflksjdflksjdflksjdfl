@@ -23,13 +23,14 @@ use \GuzzleHttp\Psr7\Response;
 //Route::prefix('v1')->group(function() {
     Route::prefix('payment')->group(function() {
         Route::post('/pay', 'PaymentController@payment');
-        Route::post('/repeat', 'PaymentController@payment');
-        Route::post('/refund', 'PaymentController@payment');
+        Route::post('/repeat', 'PaymentController@repeat');
+        Route::post('/refund', 'PaymentController@refund');
+        Route::post('/defer', 'PaymentController@defer');
+        Route::post('/void', 'PaymentController@void');
         Route::post('/auth-token', 'PaymentController@index');
 
         Route::post('/card-identifier', 'PaymentController@cardAuthorization');
         Route::post('/session-token', 'PaymentController@sessionToken');
-
 
         Route::post('/card-identifier_', function () {
 
@@ -45,7 +46,6 @@ use \GuzzleHttp\Psr7\Response;
 
             dump('we are coming from a secure payment', $request->server->all());
         });
-
 
 
         Route::get('test', function () {
