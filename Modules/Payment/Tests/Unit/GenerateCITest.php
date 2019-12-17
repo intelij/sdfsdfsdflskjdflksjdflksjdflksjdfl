@@ -52,36 +52,6 @@ class GenerateCITest extends TestCase
      * @return void
      * @throws \Exception
      */
-    public function testShouldBeAbleToGenerateCI()
-    {
-
-        try {
-            $response = $this->post('/api/payment/card-identifier', $this->payload, $this->requestHeaders);
-        } catch (\Exception $e) {
-            $this->expectExceptionMessage('The HTTP status code "0" is not valid.');
-        }
-
-//        $this->assertTrue(true);
-
-//        dd($response);
-//
-//        $result = $response->decodeResponseJson();
-//
-//        dump($result);
-
-//        $this->assertIsString($result['merchantSessionKey']);
-//        $this->assertArrayHasKey('merchantSessionKey', $result);
-
-    }
-
-    /**
-     * A basic test example.
-     *
-     * @test
-     *
-     * @return void
-     * @throws \Exception
-     */
     public function testShouldNotBeAbleToGenerateCI()
     {
 
